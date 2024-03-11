@@ -2,6 +2,7 @@
 //! 10_000_000th prime number
 
 use std::time::SystemTime;
+use std::{io, thread};
 
 macro_rules! PRIME_COUNT {
     () => {
@@ -14,19 +15,33 @@ fn is_prime(x: u32, prime_vec: &[u32]) -> bool {
 }
 
 fn main() {
-    let mut prime_vec = Vec::with_capacity(PRIME_COUNT!());
-    prime_vec.push(2);
-    let mut num_to_check = 3;
-    let start = SystemTime::now();
-    while prime_vec.len() < PRIME_COUNT!() {
-        if is_prime(num_to_check, &prime_vec) {
-            prime_vec.push(num_to_check);
+    let f = || {
+        let mut prime_vec = Vec::with_capacity(PRIME_COUNT!());
+        prime_vec.push(2);
+        let mut num_to_check = 3;
+        while prime_vec.len() < PRIME_COUNT!() {
+            if is_prime(num_to_check, &prime_vec) {
+                prime_vec.push(num_to_check);
+            }
+            num_to_check += 2; // Increment by 2 to skip even numbers
         }
-        num_to_check += 2; // Increment by 2 to skip even numbers
+        // println!("Count: {}", prime_vec.last().unwrap());
+    };
+    let mut v = Vec::new();
+    println!("How many threads?");
+    let mut s = String::new();
+    io::stdin().read_line(&mut s).unwrap();
+    let thread_num: u32 = s.trim().parse().expect("Not a number!");
+    println!("Running benchmark with {thread_num} thread{}.", if thread_num == 1 {""} else {"s"});
+    let start = SystemTime::now();
+    for _ in 0..thread_num {
+        v.push(thread::spawn(f));
+    }
+    for handler in v {
+        handler.join().unwrap();
     }
     let stop = SystemTime::now();
     let time = stop.duration_since(start).unwrap();
 
-    println!("{}", prime_vec.last().unwrap());
     println!("time: {}s", time.as_secs_f32());
 }
