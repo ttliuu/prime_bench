@@ -1,14 +1,10 @@
-//! A simple benchmark program that computes 
+//! A simple benchmark program that computes
 //! 10_000_000th prime number
 
 use std::time::SystemTime;
 use std::{io, thread};
 
-macro_rules! PRIME_COUNT {
-    () => {
-        10_000_000
-    };
-}
+const PRIME_COUNT: usize = 5_000_000;
 
 fn is_prime(x: u32, prime_vec: &[u32]) -> bool {
     prime_vec.iter().take_while(|&&p| p * p <= x).all(|&p| x % p != 0)
@@ -16,10 +12,10 @@ fn is_prime(x: u32, prime_vec: &[u32]) -> bool {
 
 fn main() {
     let f = || {
-        let mut prime_vec = Vec::with_capacity(PRIME_COUNT!());
+        let mut prime_vec = Vec::with_capacity(PRIME_COUNT);
         prime_vec.push(2);
         let mut num_to_check = 3;
-        while prime_vec.len() < PRIME_COUNT!() {
+        while prime_vec.len() < PRIME_COUNT {
             if is_prime(num_to_check, &prime_vec) {
                 prime_vec.push(num_to_check);
             }
@@ -43,5 +39,7 @@ fn main() {
     let stop = SystemTime::now();
     let time = stop.duration_since(start).unwrap();
 
-    println!("time: {}s", time.as_secs_f32());
+    println!("total time: {}s", time.as_secs_f32());
+
+    println!("avg. time per thread: {}s", time.as_secs_f32() / thread_num as f32);
 }
